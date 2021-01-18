@@ -1,0 +1,6 @@
+"0",""
+"0","bencana_gamma %>% "
+"0","  ggplot(aes(x = rev(location), y = gamma, fill = factor(topic))) +"
+"0","  geom_col() +"
+"0","  coord_flip()"
+"0",""
