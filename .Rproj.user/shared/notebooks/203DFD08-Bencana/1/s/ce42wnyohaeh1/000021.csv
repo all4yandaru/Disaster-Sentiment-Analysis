@@ -1,6 +1,0 @@
-"0","bencana_gamma <- bencana_lda %>% "
-"0","  tidy(matrix = ""gamma"") %>% "
-"0","  rename(location = document) %>% "
-"0","  arrange(location, desc(gamma))"
-"0",""
-"0","bencana_gamma"
