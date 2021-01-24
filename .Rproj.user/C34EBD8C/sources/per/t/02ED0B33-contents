@@ -21,6 +21,13 @@ library(topicmodels) # pembuatan LDA
 library(tidyverse)
 library(tidytext) # Untuk Text Mining dan Preprocessing
 
+library(wordcloud)
+library(syuzhet)
+library(lubridate)
+library(scales)
+library(reshape2)
+library(tm)
+
 bencana_raw <- vroom(here("data-raw", "tweets.csv"))
 bencana_raw_scraping <- vroom(here("data-raw", "tweets_scraping.csv"))
 
@@ -206,4 +213,53 @@ glimpse(bencana)
   test_akurasi
 #}
 #test_akurasi
+```
+
+# Word Cloud
+```{r}
+# melihat isi terlebih dahulu
+corpus <- iconv(testing$text)
+corpus <- Corpus(VectorSource(corpus))
+inspect(corpus[1:5])
+
+# Term document matrix
+tdm <- TermDocumentMatrix(corpus)
+tdm <- as.matrix(tdm)
+tdm[1:10, 1:20] # melihat matrix banyaknya kata-i pada kalimat-j
+
+# Bar plot
+w <- rowSums(tdm)
+w <- subset(w, w>=25) # melihat banyak kata yang lebih dari 25
+#w # melihat banyaknya frekuensi kata
+
+# Word Cloud
+w <- sort(rowSums(tdm), decreasing = TRUE)
+#w
+set.seed(222)
+
+wordcloud(words = names(w),
+          freq = w,
+          max.words = 500,
+          random.order = F,
+          min.freq = 50,
+          colors = brewer.pal(8, 'Dark2'),
+          scale = c(2, 0.3))
+
+w_data <- data.frame(names(w), w)
+colnames(w_data) <- c('word', 'freq')
+```
+
+
+# Emotion Sentiment
+```{r}
+# Sentiment analysis
+tweets <- iconv(testing$text)
+s <- get_nrc_sentiment(tweets)
+head(s)
+
+barplot(colSums(s),
+        las = 2,
+        col = rainbow(10),
+        ylab = 'Count',
+        main = 'Sentiment Scores for Disasters')
 ```
