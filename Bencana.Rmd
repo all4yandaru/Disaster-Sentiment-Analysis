@@ -22,15 +22,19 @@ library(tidyverse)
 library(tidytext) # Untuk Text Mining dan Preprocessing
 
 bencana_raw <- vroom(here("data-raw", "tweets.csv"))
-glimpse(bencana_raw)
+bencana_raw_scraping <- vroom(here("data-raw", "tweets_scraping.csv"))
+
 bencana <- bencana_raw %>% select(-location, -target) %>% filter(keyword == "flood" | keyword == "earthquake" | keyword == "volcano")
-bencana
+bencana_scraping <- bencana_raw_scraping %>% select(id, text)
+
+View(bencana_scraping)
+View(bencana)
 ```
 
 ## penentuan testing dan training
 ```{r}
 
-# cleaning
+# cleaning bencana
 bencana$text <- gsub("(RT|via)((?:\\b\\W*@\\w+)+)", " ", bencana$text)
 bencana$text <- gsub("@\\w+", " ", bencana$text)
 bencana$text <- gsub("#\\w+", " ", bencana$text)
@@ -42,9 +46,32 @@ bencana$text <- gsub("[ \t]{2,}", " ", bencana$text)
 bencana$text <- gsub("^\\s+|\\s+$", "", bencana$text)
 bencana$text <- tolower(bencana$text)
 
-# menghilangkan stopwords
+# cleaning bencana scraping
+bencana_scraping$text <- gsub("(RT|via)((?:\\b\\W*@\\w+)+)", " ", bencana_scraping$text)
+bencana_scraping$text <- gsub("@\\w+", " ", bencana_scraping$text)
+bencana_scraping$text <- gsub("#\\w+", " ", bencana_scraping$text)
+bencana_scraping$text <- gsub("https://t.co/\\w+", " ", bencana_scraping$text)
+bencana_scraping$text <- gsub('[[:punct:]]', " ", bencana_scraping$text)
+bencana_scraping$text <- gsub('[[:cntrl:]]', " ", bencana_scraping$text)
+bencana_scraping$text <- gsub('\\d+', "", bencana_scraping$text)
+bencana_scraping$text <- gsub("[ \t]{2,}", " ", bencana_scraping$text)
+bencana_scraping$text <- gsub("^\\s+|\\s+$", "", bencana_scraping$text)
+bencana_scraping$text <- gsub("[^[:alnum:][:blank:]?&/\\-]", "", bencana_scraping$text)
+bencana_scraping$text <- tolower(bencana_scraping$text)
+
+
+# menghilangkan stopwords bencana
 bencana <- bencana %>%
   group_by(id, keyword) %>%
+  unnest_tokens(word, text) %>%
+  anti_join(stop_words) %>%
+  summarize(text = str_c(word, collapse = " ")) %>%
+  ungroup()
+
+# menghilangkan stopwords bencana scraping
+bencana_scraping <- bencana_scraping %>%
+  filter(!is.na(text)) %>%
+  group_by(id) %>%
   unnest_tokens(word, text) %>%
   anti_join(stop_words) %>%
   summarize(text = str_c(word, collapse = " ")) %>%
@@ -53,9 +80,18 @@ bencana <- bencana %>%
 # Training testing
 ```{r}
 # penentuan training dan sample
-dt <- sort(sample(nrow(bencana), nrow(bencana)*.7)) # 70 persen utk training
-train <- bencana[dt,]
-testing <- bencana[-dt,]
+train <- bencana
+dt <- sort(sample(nrow(bencana_scraping), nrow(bencana_scraping)*.1)) # 10 persen data scraping
+dt <- bencana_scraping[dt,]
+testing <- data.frame(id = integer(), keyword = character(), text = character())
+testing <- testing%>% rbind(data.frame(dt)) %>% mutate(keyword = NA)
+
+#dt <- sort(sample(nrow(bencana), nrow(bencana)*.7)) # 70 persen utk training
+#train <- bencana[dt,]
+#testing <- bencana[-dt,]
+
+glimpse(train)
+glimpse(testing)
 ```
 
 ## proses prediksi
@@ -64,7 +100,7 @@ glimpse(bencana)
 #test_akurasi <- data.frame(k = integer(), akurasi = numeric())
 #for (key in seq(3, 10, 2)) { # increment 3 - 10 sebanyak 2
   
-  hasil_prediksi <- data.frame(id = integer(), keyword = character())
+  hasil_prediksi <- data.frame(id = integer(), keyword = character(), text = character())
 
   for (i in 1:nrow(testing)) {
     cat(sprintf("Proses: (%d / %d)\n", i, nrow(testing)))
@@ -124,10 +160,10 @@ glimpse(bencana)
     # sorting hasil cosine
     cosine <- cosine %>% arrange(desc(hasil_cosine))
     
-    
     # proses knn
     k <- 7 # diusahakan ganjil, 7 yang paling tinggi
     
+    # dicari 7 data terdekat
     predict_knn <- cosine %>%
       inner_join(train, by = "id") %>%
       select(id, hasil_cosine, keyword, text) %>%
@@ -140,19 +176,24 @@ glimpse(bencana)
       rbind(data.frame(id = predict$id, keyword = sentiment_predict))
   }
   
-  hasil_prediksi %>% arrange(desc(id))
+  hasil_prediksi %>% mutate(text = testing$text) %>% arrange(desc(id))
+  
+  text_raw <- bencana_raw_scraping %>% select(id, text)
+  
+  data_akhir <- hasil_prediksi %>% 
+    left_join(text_raw, by = "id")
 
-
+  view(data_akhir)
 # Testing akurasi
 
-  compare_predict <- testing
-  compare_predict <- compare_predict %>% 
-    inner_join(hasil_prediksi, by = "id") %>%
-    mutate(akurasi_poin = ifelse(keyword.x == keyword.y, 1, 0))
+  #compare_predict <- testing
+  #compare_predict <- compare_predict %>% 
+  #  inner_join(hasil_prediksi, by = "id") %>%
+  #  mutate(akurasi_poin = ifelse(keyword.x == keyword.y, 1, 0))
   
-  compare_predict %>% arrange(desc(id))
+  #compare_predict %>% arrange(desc(id))
   
-  compare_predict %>% group_by(keyword.x) %>% count()
+  #compare_predict %>% group_by(keyword.x) %>% count()
   
   #akurasi <- (compare_predict %>%
   #  filter(akurasi_poin == 1) %>%
