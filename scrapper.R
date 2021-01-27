@@ -23,7 +23,7 @@ setup_twitter_oauth(CUSTOMER_KEY, CUSTOMER_SECRET, ACCESS_TOKEN, ACCESS_secret)
 
 #ambil data
 search <- c("#flood", "#earthquake", "#volcano")
-no.of.tweets <- 40
+no.of.tweets <- 1000
 
 #lihat data
 

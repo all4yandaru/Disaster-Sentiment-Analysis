@@ -99,6 +99,7 @@ testing <- testing%>% rbind(data.frame(dt)) %>% mutate(keyword = NA)
 
 glimpse(train)
 glimpse(testing)
+# write.csv(testing,"detasentiment.csv",row.names = F)
 ```
 
 ## proses prediksi
@@ -185,12 +186,15 @@ glimpse(bencana)
   
   hasil_prediksi %>% mutate(text = testing$text) %>% arrange(desc(id))
   
+  view(hasil_prediksi)
   text_raw <- bencana_raw_scraping %>% select(id, text)
   
   data_akhir <- hasil_prediksi %>% 
     left_join(text_raw, by = "id")
 
   view(data_akhir)
+  # write.csv(data_akhir,"datakagel.csv",row.names = F)
+  
 # Testing akurasi
 
   #compare_predict <- testing
