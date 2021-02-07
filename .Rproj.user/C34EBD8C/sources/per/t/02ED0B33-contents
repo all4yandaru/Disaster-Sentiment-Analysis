@@ -123,6 +123,8 @@ glimpse(bencana)
       count(id, word, sort = TRUE) %>%
       bind_tf_idf(word, id, n)
     
+    view(data_tfidf)
+    
     # mengambil kata2 yang akan diprediksi, kemudian mengalikan data predict dan data training untuk dimasukkan ke rumus cosine
     predict_w <- data_tfidf %>% filter(id == predict$id)
     
@@ -176,6 +178,8 @@ glimpse(bencana)
       inner_join(train, by = "id") %>%
       select(id, hasil_cosine, keyword, text) %>%
       head(k)
+    
+    view(predict_knn)
     
     sentiment_predict <- predict_knn %>% count(keyword)
     sentiment_predict <- sentiment_predict$keyword[which.max(sentiment_predict$n)]

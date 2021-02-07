@@ -3,7 +3,7 @@
     "path": "E:/tugas/#UPNVY/#Semester 5/Praktikum Data Science (B)/Proyek/Bencana/Bencana.Rmd",
     "project_path": "Bencana.Rmd",
     "type": "r_markdown",
-    "hash": "1056915740",
+    "hash": "1022618778",
     "contents": "",
     "dirty": false,
     "created": 1610856323074.0,
@@ -11,16 +11,16 @@
     "relative_order": 1,
     "properties": {
         "tempName": "Untitled1",
-        "cursorPosition": "90,46",
-        "scrollLine": "88",
-        "last_setup_crc32": "D72CA6A6bb338d19"
+        "cursorPosition": "183,4",
+        "scrollLine": "164",
+        "last_setup_crc32": "F9FCEF78bb338d19"
     },
     "folds": "",
-    "lastKnownWriteTime": 1611752955,
+    "lastKnownWriteTime": 1612080794,
     "encoding": "UTF-8",
     "collab_server": "",
     "source_window": "",
-    "last_content_update": 1611752956060,
+    "last_content_update": 1612080794527,
     "read_only": false,
     "read_only_alternatives": []
 }
